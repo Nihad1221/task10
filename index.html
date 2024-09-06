@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab Sistemi</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="#" class="nav-item" data-page="home">Əsas Səhifə</a>
+    <a href="#" class="nav-item" data-page="about">Haqqımızda</a>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="content">
+    <div id="home" class="page" data-page="home">
+        <h2>Siddhartha</h2>
+        <p>Hermann Hesse</p>
+        <div class="tabs">
+            <button class="tab-button" data-tab="tab1">Qısa Məlumat</button>
+            <button class="tab-button" data-tab="tab2">Daha Çox Məlumat</button>
+            <button class="tab-button" data-tab="tab3">Əlaqə</button>
+        </div>
+
+        <div class="tab-content" id="home-tab1" style="display: none;">
+            <div class="content-box">
+                <img src="https://aztehsil.com/uploads/posts/2021-11/1635855741_the-communist-manifesto.jpg" alt="Kitab"
+                     class="book-image">
+                <h3>Kitab Adı: "Siddhartha"</h3>
+                <p>Müəllif: Hermann Hesse</p>
+                <p>"Siddhartha", ruhani axtarışa çıxan və daxili harmoniyanı tapmaq üçün həyatını səyahətə çevirən bir
+                    adamın hekayəsidir.</p>
+            </div>
+        </div>
+
+        <div class="tab-content" id="home-tab2" style="display: none;">
+            <div class="content-box">
+                "Siddhartha" romanı qədim Hindistanda cərəyan edir və baş qəhrəman Siddhartha'nın həyatında öz mənəvi
+                həqiqətini axtarmasından bəhs edir.
+            </div>
+        </div>
+
+        <div class="tab-content" id="home-tab3" style="display: none;">
+            <div class="contact-form">
+                <form id="contactForm">
+                    <label for="name">Ad və Soyad:</label>
+                    <input type="text" id="name" name="name" required>
+
+                    <label for="email">Email:</label>
+                    <input type="text" id="email" name="email" required>
+
+                    <label for="message">Şərh:</label>
+                    <textarea id="message" name="message" required></textarea>
+
+                    <button type="submit" id="submitBtn">Göndər</button>
+                    <div id="spinner" class="spinner" style="display:none;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $(".tab-button").click(function () {
+            const tabId = $(this).data("tab");
+            $(".tab-content").hide();
+            $(`#home-${tabId}`).slideDown();
+
+            localStorage.setItem("currentTab", tabId);
+        });
+
+        const savedTab = localStorage.getItem("currentTab");
+        if (savedTab) {
+            $(`#home-${savedTab}`).show();
+        } else {
+            $("#home-tab1").show();
+        }
+
+
+        function showToast(message, isSuccess = true) {
+            const toast = $("#toast");
+            toast.removeClass("success error").addClass(isSuccess ? "success" : "error");
+            toast.text(message).addClass("show");
+            setTimeout(function () {
+                toast.removeClass("show");
+            }, 3000);
+        }
+
+        $("#contactForm").submit(function (event) {
+            event.preventDefault();
+
+            const email = $("#email").val();
+            if (!validateEmail(email)) {
+                showToast("Xahiş olunur, düzgün email daxil edin.", false);
+                return;
+            }
+
+            $("#submitBtn").prop("disabled", true);
+            $("#spinner").show();
+
+            setTimeout(function () {
+                const formData = {
+                    name: $("#name").val(),
+                    email: $("#email").val(),
+                    message: $("#message").val(),
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "submit.php",
+                    data: formData,
+                    success: function (response) {
+                        showToast("Məlumat uğurla yazıldı!");
+                        $("#contactForm")[0].reset();
+                    },
+                    error: function () {
+                        showToast("Məlumat göndərilməsində xəta baş verdi.", false);
+                    },
+                    complete: function () {
+                        $("#submitBtn").prop("disabled", false);
+                        $("#spinner").hide();
+                    }
+                });
+            }, 3000);
+        });
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+    });
+</script>
+
+</body>
+</html>
